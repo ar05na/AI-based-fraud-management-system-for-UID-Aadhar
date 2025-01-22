@@ -1,0 +1,3 @@
+0 name
+1 uid
+2 address

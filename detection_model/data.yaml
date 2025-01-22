@@ -1,0 +1,4 @@
+train: 'C:\Users/guptt/OneDrive/Documents/Desktop/Infosys_training/detection_model/dataset/images/train'
+val: 'C:\Users/guptt/OneDrive/Documents/Desktop/Infosys_training/detection_model/dataset/images/val'
+nc: 3
+names: ['name', 'uid', 'address']
