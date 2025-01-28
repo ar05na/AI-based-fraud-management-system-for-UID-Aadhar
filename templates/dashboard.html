@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aadhaar Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: Arial, sans-serif;
+        }
+        .card {
+            margin: 15px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+        }
+        #chart-container {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Aadhaar UID Dashboard</h1>
+    <div class="container">
+        <!-- Statistics -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h5>Total Aadhaar Uploaded</h5>
+                        <h2 id="total">{{ stats.total }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h5>Matches</h5>
+                        <h2 id="matches">{{ stats.matches }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-danger">
+                    <div class="card-body">
+                        <h5>Mismatches</h5>
+                        <h2 id="mismatches">{{ stats.mismatches }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <h5>Accuracy</h5>
+                        <h2 id="accuracy">{{ stats.accuracy }}%</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Form -->
+        <div class="card">
+            <div class="card-body">
+                <h5>Upload Aadhaar Files</h5>
+                <form id="upload-form">
+                    <div class="mb-3">
+                        <label for="zipFile" class="form-label">Upload ZIP File</label>
+                        <input type="file" id="zipFile" name="zip_file" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="excelFile" class="form-label">Upload Excel File</label>
+                        <input type="file" id="excelFile" name="excel_file" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div id="chart-container">
+            <canvas id="matchChart"></canvas>
+        </div>
+
+        <!-- Download Report -->
+        <div class="text-center mt-4">
+            <a href="/download" class="btn btn-success">Download Results</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("upload-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+
+            const response = await fetch("/upload", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+            alert(data.message || data.error);
+        });
+
+        const ctx = document.getElementById("matchChart").getContext("2d");
+        new Chart(ctx, {
+            type: "doughnut",
+            data: {
+                labels: ["Matches", "Mismatches"],
+                datasets: [{
+                    data: [{{ stats.matches }}, {{ stats.mismatches }}],
+                    backgroundColor: ["#28a745", "#dc3545"]
+                }]
+            }
+        });
+    </script>
+</body>
+</html>

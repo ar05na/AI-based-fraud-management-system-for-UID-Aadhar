@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aadhaar Fraud Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/styles.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="content" class="container mt-5">
+        <h1 class="text-center">Aadhaar Fraud Management System</h1>
+        <form id="upload-form" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="zipfile" class="form-label">Upload ZIP File</label>
+                <input type="file" class="form-control" name="zipfile" id="zipfile" required>
+            </div>
+            <div class="mb-3">
+                <label for="excelfile" class="form-label">Upload Excel File</label>
+                <input type="file" class="form-control" name="excelfile" id="excelfile" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+
+        <div class="container mt-5">
+            <button class="btn btn-success" onclick="downloadResults()">Download Results</button>
+        </div>
+
+        <div id="results" class="mt-4"></div>
+
+        <!-- Chart Section -->
+        <div class="mt-5 row">
+            <h2 class="text-center">Data Visualizations</h2>
+
+            <!-- Acceptance and Rejection Chart -->
+            <div class="col-md-4">
+                <canvas id="acceptanceChart" class="mb-4"></canvas>
+            </div>
+
+            <!-- Document Type Counts Chart -->
+            <div class="col-md-4">
+                <canvas id="documentTypeChart" class="mb-4"></canvas>
+            </div>
+
+            <!-- Processing Speed Chart (Line Plot) -->
+            <div class="col-md-4">
+                <canvas id="processingSpeedChart" class="mb-4"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Handle form submission
+            $('#upload-form').on('submit', function (e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+
+                $('#content').html('<div class="text-center"><h3>Processing...</h3><div class="spinner-border" role="status"></div></div>');
+
+                $.ajax({
+                    url: '/upload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        const results = response.results;
+                        $('#content').html(`
+                            <h1 class="text-center">Aadhaar Fraud Management System</h1>
+                            <button class="btn btn-success" onclick="downloadResults()">Download Results</button>
+                            <div id="results" class="mt-4">${renderResultsTable(results)}</div>
+                            <div class="mt-5 row">
+                                <h2 class="text-center">Data Visualizations</h2>
+                                <div class="col-md-4">
+                                    <canvas id="acceptanceChart" class="mb-4"></canvas>
+                                </div>
+                                <div class="col-md-4">
+                                    <canvas id="documentTypeChart" class="mb-4"></canvas>
+                                </div>
+                                <div class="col-md-4">
+                                    <canvas id="processingSpeedChart" class="mb-4"></canvas>
+                                </div>
+                            </div>
+                        `);
+
+                        const acceptedCount = results.filter(r => r['Accepted/Rejected'] === 'Accepted').length;
+                        const rejectedCount = results.filter(r => r['Accepted/Rejected'] === 'Rejected').length;
+
+                        const documentTypeCounts = results.reduce((acc, r) => {
+                            acc[r['Document Type']] = (acc[r['Document Type']] || 0) + 1;
+                            return acc;
+                        }, {});
+
+                        const processingSpeeds = response.processingSpeeds;  // assuming this is returned by the backend
+
+                        renderCharts(acceptedCount, rejectedCount, documentTypeCounts, processingSpeeds);
+                    },
+                    error: function () {
+                        $('#content').html('<h3 class="text-center text-danger">Error processing files.</h3>');
+                    }
+                });
+            });
+        });
+
+        function renderResultsTable(results) {
+            let table = `
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>SrNo</th>
+                            <th>Document Type</th>
+                            <th>Accepted/Rejected</th>
+                            <th>Final Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            results.forEach(row => {
+                table += `
+                    <tr>
+                        <td>${row.SrNo}</td>
+                        <td>${row['Document Type']}</td>
+                        <td>${row['Accepted/Rejected']}</td>
+                        <td>${row['Final Remarks']}</td>
+                    </tr>
+                `;
+            });
+
+            table += '</tbody></table>';
+            return table;
+        }
+
+        function renderCharts(acceptedCount, rejectedCount, documentTypeCounts, processingSpeeds) {
+            // Acceptance Rate Chart (Doughnut)
+            const ctx1 = document.getElementById('acceptanceChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Accepted', 'Rejected'],
+                    datasets: [{
+                        label: 'Acceptance Rate',
+                        data: [acceptedCount, rejectedCount],
+                        backgroundColor: ['#4caf50', '#f44336']
+                    }]
+                }
+            });
+
+            // Document Type Counts Chart (Bar)
+            const ctx2 = document.getElementById('documentTypeChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(documentTypeCounts),
+                    datasets: [{
+                        label: 'Document Type Counts',
+                        data: Object.values(documentTypeCounts),
+                        backgroundColor: '#2196f3'
+                    }]
+                }
+            });
+
+            // Processing Speed Chart (Line Plot)
+            const ctx3 = document.getElementById('processingSpeedChart').getContext('2d');
+            new Chart(ctx3, {
+                type: 'line',
+                data: {
+                    labels: processingSpeeds.map((_, index) => `Image ${index + 1}`),  // Assuming processingSpeeds is an array
+                    datasets: [{
+                        label: 'Processing Speed (seconds)',
+                        data: processingSpeeds,
+                        borderColor: '#FF5733',
+                        fill: false
+                    }]
+                }
+            });
+        }
+
+        function downloadResults() {
+            window.location.href = '/download';
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
