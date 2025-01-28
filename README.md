@@ -23,14 +23,21 @@ visualizing the results(pie chat,bar chart,....etc)
 
 
 How TO RUN THIS:
-clone the respository
-set up the environment
-download the requirements from requirements.txt
+1)clone the respository
+
+2)set up the environment
+
+3)download the requirements from requirements.txt
 and run this through python app.py command
 it will show the path........ 
-upload the given sample input files and after processsing downlaod the results.xlsx file
-I am integrating some images of my project to know the actual output<img width="581" alt="results 1" src="https://github.com/user-attachments/assets/55155040-e282-4f24-b449-d4374dcf28e0" />
-<img width="614" alt="main page" src="https://github.com/user-attachments/assets/5bfaf5e0-2db6-4ca7-8539-757e57147be8" />
+
+4)upload the given sample input files and after processsing downlaod the results.xlsx file
+
+I am integrating some images of my project to know the actual output
+
+<img width="614" alt="main page" src="https://github.com/user-attachments/assets/1ee5c6f6-c600-4bda-a441-b35b25f12913" />
+<img width="581" alt="results 1" src="https://github.com/user-attachments/assets/1480421c-00d2-4c31-abb0-db82bfef97b0" />
+
 
 
 
