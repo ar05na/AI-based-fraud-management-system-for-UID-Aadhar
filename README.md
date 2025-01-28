@@ -19,5 +19,7 @@ Step 4:
 visualizing the results(pie chat,bar chart,....etc)
 
 
+![flowchart (1)](https://github.com/user-attachments/assets/a4cd6edd-008e-4023-9ccc-02ac8280b139)
+
 
 
